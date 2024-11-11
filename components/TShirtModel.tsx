@@ -11,6 +11,9 @@ interface TShirtModelProps {
   rotation?: number;
   textureScale: { x: number; y: number };
   texturePosition: { x: number; y: number };
+  textureRotation: number;
+  textureOpacity: number;
+  textureBlendMode: THREE.BlendingDestinationFactor;
 }
 
 export default function TShirtModel({
@@ -19,6 +22,9 @@ export default function TShirtModel({
   rotation = 0,
   textureScale,
   texturePosition,
+  textureRotation,
+  textureOpacity,
+  textureBlendMode,
 }: TShirtModelProps) {
   const { nodes, materials } = useGLTF("/shirt_baked.glb");
   const meshRef = useRef<THREE.Mesh>(null);
@@ -32,20 +38,34 @@ export default function TShirtModel({
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
 
-        // Apply scale and position
+        // Apply transformations
         loadedTexture.repeat.set(textureScale.x, textureScale.y);
         loadedTexture.offset.set(texturePosition.x, texturePosition.y);
+        loadedTexture.rotation = (textureRotation * Math.PI) / 180;
+        loadedTexture.center.set(0.5, 0.5); // Set rotation center to middle of texture
 
         if (materialRef.current) {
           materialRef.current.map = loadedTexture;
+          materialRef.current.transparent = true;
+          materialRef.current.opacity = textureOpacity;
+          materialRef.current.blendDst = textureBlendMode;
           materialRef.current.needsUpdate = true;
         }
       });
     } else if (materialRef.current) {
       materialRef.current.map = null;
+      materialRef.current.transparent = false;
+      materialRef.current.opacity = 1;
       materialRef.current.needsUpdate = true;
     }
-  }, [texture, textureScale, texturePosition]);
+  }, [
+    texture,
+    textureScale,
+    texturePosition,
+    textureRotation,
+    textureOpacity,
+    textureBlendMode,
+  ]);
 
   useFrame((state) => {
     if (meshRef.current) {

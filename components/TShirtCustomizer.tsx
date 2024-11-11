@@ -26,6 +26,10 @@ export default function TShirtCustomizer() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [textureScale, setTextureScale] = useState({ x: 1, y: 1 });
   const [texturePosition, setTexturePosition] = useState({ x: 0, y: 0 });
+  const [textureRotation, setTextureRotation] = useState(0);
+  const [textureOpacity, setTextureOpacity] = useState(1);
+  const [textureBlendMode, setTextureBlendMode] =
+    useState<THREE.BlendingDestinationFactor>(201); // Normal blend mode
 
   const handleDownload = () => {
     const canvas = document.querySelector("canvas");
@@ -67,6 +71,9 @@ export default function TShirtCustomizer() {
     setRotation(0);
     setTextureScale({ x: 1, y: 1 });
     setTexturePosition({ x: 0, y: 0 });
+    setTextureRotation(0);
+    setTextureOpacity(1);
+    setTextureBlendMode(201);
   };
 
   return (
@@ -88,6 +95,9 @@ export default function TShirtCustomizer() {
                 texture={texture}
                 textureScale={textureScale}
                 texturePosition={texturePosition}
+                textureRotation={textureRotation}
+                textureOpacity={textureOpacity}
+                textureBlendMode={textureBlendMode}
               />
             </PresentationControls>
           ) : (
@@ -98,6 +108,9 @@ export default function TShirtCustomizer() {
                 rotation={rotation}
                 textureScale={textureScale}
                 texturePosition={texturePosition}
+                textureRotation={textureRotation}
+                textureOpacity={textureOpacity}
+                textureBlendMode={textureBlendMode}
               />
               <OrbitControls
                 enablePan={false}
@@ -135,8 +148,14 @@ export default function TShirtCustomizer() {
                 onTextureChange={setTexture}
                 scale={textureScale}
                 position={texturePosition}
+                rotation={textureRotation}
+                opacity={textureOpacity}
+                blendMode={textureBlendMode}
                 onScaleChange={setTextureScale}
                 onPositionChange={setTexturePosition}
+                onRotationChange={setTextureRotation}
+                onOpacityChange={setTextureOpacity}
+                onBlendModeChange={setTextureBlendMode}
               />
             </TabsContent>
           </Tabs>

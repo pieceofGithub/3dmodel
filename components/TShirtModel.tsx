@@ -13,7 +13,7 @@ interface TShirtModelProps {
   texturePosition: { x: number; y: number };
   textureRotation: number;
   textureOpacity: number;
-  textureBlendMode: THREE.BlendingDestinationFactor;
+  textureBlendMode: THREE.BlendingDstFactor;
 }
 
 export default function TShirtModel({
@@ -48,11 +48,18 @@ export default function TShirtModel({
           materialRef.current.map = loadedTexture;
           materialRef.current.transparent = true;
           materialRef.current.opacity = textureOpacity;
-          materialRef.current.blendDst = textureBlendMode;
+
+          // Apply blend mode
+          materialRef.current.blending = THREE.CustomBlending;
+          materialRef.current.blendSrc = THREE.SrcAlphaFactor; // Source factor
+          materialRef.current.blendDst = textureBlendMode; // Destination factor (from control)
+          materialRef.current.blendEquation = THREE.AddEquation; // Blend equation (can change based on your desired effect)
+
           materialRef.current.needsUpdate = true;
         }
       });
     } else if (materialRef.current) {
+      // Remove the texture if `texture` is null or undefined
       materialRef.current.map = null;
       materialRef.current.transparent = false;
       materialRef.current.opacity = 1;

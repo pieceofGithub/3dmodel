@@ -15,6 +15,8 @@ import {
 import { ImageIcon, Move, Maximize2, RotateCw, Droplets } from "lucide-react";
 import { compressImage } from "@/lib/imageUtils";
 
+import * as THREE from "three";
+
 interface TextureControlsProps {
   texture: string;
   onTextureChange: (texture: string) => void;
@@ -22,13 +24,22 @@ interface TextureControlsProps {
   position: { x: number; y: number };
   rotation: number;
   opacity: number;
-  blendMode: THREE.BlendingDestinationFactor;
+  blendMode: THREE.BlendingDstFactor;
   onScaleChange: (scale: { x: number; y: number }) => void;
   onPositionChange: (position: { x: number; y: number }) => void;
   onRotationChange: (rotation: number) => void;
   onOpacityChange: (opacity: number) => void;
-  onBlendModeChange: (mode: THREE.BlendingDestinationFactor) => void;
+  onBlendModeChange: (mode: THREE.BlendingDstFactor) => void;
 }
+
+// Mapping for blend modes to Three.js constants
+const blendModeMapping: { [key: string]: THREE.BlendingDstFactor } = {
+  OneMinusSrcAlphaFactor: THREE.OneMinusSrcAlphaFactor,
+  SrcAlphaFactor: THREE.SrcAlphaFactor,
+  OneMinusDstColorFactor: THREE.OneMinusDstColorFactor,
+  OneFactor: THREE.OneFactor,
+  DstColorFactor: THREE.DstColorFactor,
+};
 
 const blendModes = [
   { value: "OneMinusSrcAlphaFactor", label: "Normal" },
@@ -149,82 +160,62 @@ export default function TextureControls({
 
           {activeTab === "position" && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Position X</Label>
-                <Slider
-                  value={[position.x]}
-                  onValueChange={([value]) =>
-                    onPositionChange({ ...position, x: value })
-                  }
-                  min={-1}
-                  max={1}
-                  step={0.01}
-                  className="my-2"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Position Y</Label>
-                <Slider
-                  value={[position.y]}
-                  onValueChange={([value]) =>
-                    onPositionChange({ ...position, y: value })
-                  }
-                  min={-1}
-                  max={1}
-                  step={0.01}
-                  className="my-2"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Rotation</Label>
-                <Slider
-                  value={[rotation]}
-                  onValueChange={([value]) => onRotationChange(value)}
-                  min={0}
-                  max={360}
-                  step={1}
-                  className="my-2"
-                />
-              </div>
+              <Label>Position X</Label>
+              <Slider
+                value={[position.x]}
+                onValueChange={([value]) =>
+                  onPositionChange({ ...position, x: value })
+                }
+                min={-1}
+                max={1}
+                step={0.01}
+              />
+              <Label>Position Y</Label>
+              <Slider
+                value={[position.y]}
+                onValueChange={([value]) =>
+                  onPositionChange({ ...position, y: value })
+                }
+                min={-1}
+                max={1}
+                step={0.01}
+              />
+              <Label>Rotation</Label>
+              <Slider
+                value={[rotation]}
+                onValueChange={([value]) => onRotationChange(value)}
+                min={0}
+                max={360}
+                step={1}
+              />
             </div>
           )}
 
           {activeTab === "scale" && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Scale X</Label>
-                <Slider
-                  value={[scale.x]}
-                  onValueChange={([value]) =>
-                    onScaleChange({ ...scale, x: value })
-                  }
-                  min={0.1}
-                  max={3}
-                  step={0.1}
-                  className="my-2"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Scale Y</Label>
-                <Slider
-                  value={[scale.y]}
-                  onValueChange={([value]) =>
-                    onScaleChange({ ...scale, y: value })
-                  }
-                  min={0.1}
-                  max={3}
-                  step={0.1}
-                  className="my-2"
-                />
-              </div>
-
+              <Label>Scale X</Label>
+              <Slider
+                value={[scale.x]}
+                onValueChange={([value]) =>
+                  onScaleChange({ ...scale, x: value })
+                }
+                min={0.1}
+                max={3}
+                step={0.1}
+              />
+              <Label>Scale Y</Label>
+              <Slider
+                value={[scale.y]}
+                onValueChange={([value]) =>
+                  onScaleChange({ ...scale, y: value })
+                }
+                min={0.1}
+                max={3}
+                step={0.1}
+              />
               <Button
                 variant="outline"
                 onClick={() => onScaleChange({ x: 1, y: 1 })}
-                className="w-full"
               >
                 Reset Scale
               </Button>
@@ -233,48 +224,38 @@ export default function TextureControls({
 
           {activeTab === "effects" && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Opacity</Label>
-                <Slider
-                  value={[opacity]}
-                  onValueChange={([value]) => onOpacityChange(value)}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  className="my-2"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Blend Mode</Label>
-                <Select
-                  value={blendMode.toString()}
-                  onValueChange={(value) =>
-                    onBlendModeChange(
-                      Number(value) as THREE.BlendingDestinationFactor
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {blendModes.map((mode) => (
-                      <SelectItem key={mode.value} value={mode.value}>
-                        {mode.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Label>Opacity</Label>
+              <Slider
+                value={[opacity]}
+                onValueChange={([value]) => onOpacityChange(value)}
+                min={0}
+                max={1}
+                step={0.01}
+              />
+              <Label>Blend Mode</Label>
+              <Select
+                value={Object.keys(blendModeMapping).find(
+                  (key) => blendModeMapping[key] === blendMode
+                )}
+                onValueChange={(value) =>
+                  onBlendModeChange(blendModeMapping[value])
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {blendModes.map((mode) => (
+                    <SelectItem key={mode.value} value={mode.value}>
+                      {mode.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
-          <Button
-            variant="outline"
-            onClick={() => onTextureChange("")}
-            className="w-full mt-4"
-          >
+          <Button variant="outline" onClick={() => onTextureChange("")}>
             Remove Texture
           </Button>
         </>

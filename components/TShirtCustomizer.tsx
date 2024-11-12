@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import TShirtModel from "./TShirtModel";
 import TextureControls from "./TextureControls";
+import * as THREE from "three";
 
 export default function TShirtCustomizer() {
   const [shirtColor, setShirtColor] = useState("#ffffff");
@@ -29,7 +30,7 @@ export default function TShirtCustomizer() {
   const [textureRotation, setTextureRotation] = useState(0);
   const [textureOpacity, setTextureOpacity] = useState(1);
   const [textureBlendMode, setTextureBlendMode] =
-    useState<THREE.BlendingDestinationFactor>(201); // Normal blend mode
+    useState<THREE.BlendingDstFactor>(201); // Normal blend mode
 
   const handleDownload = () => {
     const canvas = document.querySelector("canvas");

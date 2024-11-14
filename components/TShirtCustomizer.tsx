@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, PresentationControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,7 +30,7 @@ export default function TShirtCustomizer() {
   const [textureRotation, setTextureRotation] = useState(0);
   const [textureOpacity, setTextureOpacity] = useState(1);
   const [textureBlendMode, setTextureBlendMode] =
-    useState<THREE.BlendingDstFactor>(201); // Normal blend mode
+    useState<THREE.BlendingDstFactor>(THREE.OneMinusDstAlphaFactor);
 
   const handleDownload = () => {
     const canvas = document.querySelector("canvas");
@@ -38,31 +38,29 @@ export default function TShirtCustomizer() {
       const link = document.createElement("a");
       link.download = "custom-tshirt.png";
       link.href = canvas.toDataURL("image/png");
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
     }
   };
 
   const handleShare = async () => {
     const canvas = document.querySelector("canvas");
     if (canvas && navigator.share) {
-      try {
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            const file = new File([blob], "custom-tshirt.png", {
-              type: "image/png",
-            });
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          const file = new File([blob], "custom-tshirt.png", {
+            type: "image/png",
+          });
+          try {
             await navigator.share({
               title: "My Custom T-Shirt Design",
               text: "Check out my custom t-shirt design!",
               files: [file],
             });
+          } catch (error) {
+            console.error("Error sharing:", error);
           }
-        });
-      } catch (error) {
-        console.error("Error sharing:", error);
-      }
+        }
+      });
     }
   };
 
@@ -74,53 +72,33 @@ export default function TShirtCustomizer() {
     setTexturePosition({ x: 0, y: 0 });
     setTextureRotation(0);
     setTextureOpacity(1);
-    setTextureBlendMode(201);
+    setTextureBlendMode(THREE.OneMinusDstAlphaFactor);
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 aspect-square bg-neutral-900 rounded-lg overflow-hidden relative">
-        <Canvas camera={{ position: [0, 0, 2.5], fov: 50 }}>
+        <Canvas camera={{ position: [0, 1.2, 1.5], fov: 30 }}>
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={0.5} />
           <pointLight position={[-10, -10, -10]} intensity={0.5} />
-          {autoRotate ? (
-            <PresentationControls
-              global
-              rotation={[0, rotation, 0]}
-              polar={[-Math.PI / 3, Math.PI / 3]}
-              azimuth={[-Math.PI / 1.4, Math.PI / 2]}
-            >
-              <TShirtModel
-                color={shirtColor}
-                texture={texture}
-                textureScale={textureScale}
-                texturePosition={texturePosition}
-                textureRotation={textureRotation}
-                textureOpacity={textureOpacity}
-                textureBlendMode={textureBlendMode}
-              />
-            </PresentationControls>
-          ) : (
-            <>
-              <TShirtModel
-                color={shirtColor}
-                texture={texture}
-                rotation={rotation}
-                textureScale={textureScale}
-                texturePosition={texturePosition}
-                textureRotation={textureRotation}
-                textureOpacity={textureOpacity}
-                textureBlendMode={textureBlendMode}
-              />
-              <OrbitControls
-                enablePan={false}
-                enableZoom={true}
-                minDistance={1.5}
-                maxDistance={4}
-              />
-            </>
-          )}
+          <TShirtModel
+            color={shirtColor}
+            texture={texture}
+            rotation={rotation}
+            textureScale={textureScale}
+            texturePosition={texturePosition}
+            textureRotation={textureRotation}
+            textureOpacity={textureOpacity}
+            textureBlendMode={textureBlendMode}
+          />
+          <OrbitControls
+            enablePan={false}
+            enableZoom={true}
+            minDistance={0.8}
+            maxDistance={2.5}
+            autoRotate={autoRotate}
+          />
         </Canvas>
       </div>
 

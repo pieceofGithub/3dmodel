@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Text } from "@react-three/drei";
 
 interface TShirtModelProps {
   color: string;
@@ -14,6 +14,12 @@ interface TShirtModelProps {
   textureRotation: number;
   textureOpacity: number;
   textureBlendMode: THREE.BlendingDstFactor;
+  text?: string;
+  textColor?: string;
+  textSize?: number;
+  textPosition?: { x: number; y: number; z?: number };
+  textRotation?: number;
+  fontFamily?: string;
 }
 
 export default function TShirtModel({
@@ -25,8 +31,15 @@ export default function TShirtModel({
   textureRotation,
   textureOpacity,
   textureBlendMode,
+  text,
+  textColor = "#000000",
+  textSize = 0.1,
+  textPosition = { x: 0, y: 0.5, z: 0.1 },
+  textRotation = 0,
+  fontFamily = "/fonts/Roboto-Bold.ttf",
 }: TShirtModelProps) {
-  const { nodes, materials } = useGLTF("/shirt_baked.glb");
+  const shirt_baked = useGLTF("/t_shirt.glb");
+  const { nodes } = shirt_baked;
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
 
@@ -42,24 +55,22 @@ export default function TShirtModel({
         loadedTexture.repeat.set(textureScale.x, textureScale.y);
         loadedTexture.offset.set(texturePosition.x, texturePosition.y);
         loadedTexture.rotation = (textureRotation * Math.PI) / 180;
-        loadedTexture.center.set(0.5, 0.5); // Set rotation center to middle of texture
+        loadedTexture.center.set(0.5, 0.5); // Center for rotation
 
+        // Update material with loaded texture
         if (materialRef.current) {
           materialRef.current.map = loadedTexture;
           materialRef.current.transparent = true;
           materialRef.current.opacity = textureOpacity;
-
-          // Apply blend mode
           materialRef.current.blending = THREE.CustomBlending;
-          materialRef.current.blendSrc = THREE.SrcAlphaFactor; // Source factor
-          materialRef.current.blendDst = textureBlendMode; // Destination factor (from control)
-          materialRef.current.blendEquation = THREE.AddEquation; // Blend equation (can change based on your desired effect)
-
+          materialRef.current.blendSrc = THREE.SrcAlphaFactor;
+          materialRef.current.blendDst = textureBlendMode;
+          materialRef.current.blendEquation = THREE.AddEquation;
           materialRef.current.needsUpdate = true;
         }
       });
     } else if (materialRef.current) {
-      // Remove the texture if `texture` is null or undefined
+      // Clear the texture if not available
       materialRef.current.map = null;
       materialRef.current.transparent = false;
       materialRef.current.opacity = 1;
@@ -82,17 +93,34 @@ export default function TShirtModel({
   });
 
   return (
-    <mesh
-      ref={meshRef}
-      geometry={nodes.T_Shirt_male.geometry}
-      scale={[1, 1.2, 1]}
-    >
-      <meshStandardMaterial
-        ref={materialRef}
-        color={color}
-        roughness={0.5}
-        metalness={0.1}
-      />
-    </mesh>
+    <group>
+      {/* T-shirt model */}
+      <mesh
+        ref={meshRef}
+        geometry={nodes.T_Shirt_male.geometry}
+        scale={[1, 1.2, 1]}
+        position={[0, 0.3, 0]} // Adjust to lift model
+      >
+        <meshStandardMaterial
+          ref={materialRef}
+          color={color}
+          roughness={0.5}
+          metalness={0.1}
+        />
+      </mesh>
+
+      {/* Text overlay */}
+      {text && (
+        <Text
+          position={[textPosition.x, textPosition.y, textPosition.z || 0.1]}
+          rotation={[0, 0, (textRotation * Math.PI) / 180]}
+          fontSize={textSize}
+          color={textColor}
+          font={fontFamily}
+        >
+          {text}
+        </Text>
+      )}
+    </group>
   );
 }
